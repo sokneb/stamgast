@@ -6,6 +6,11 @@
 <meta name="theme-color" content="#0c0a09">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Štamgast">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <title>Štamgast Simulátor 3D</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -41,7 +46,7 @@ button{touch-action:manipulation}
 .barval{font-weight:900;font-size:12px;width:50px;text-align:right}
 #rightbox{display:flex;gap:8px;align-items:flex-start}
 #statbox{text-align:right}
-#snd,#mus{pointer-events:auto;width:44px;height:44px;border-radius:14px;border:2px solid var(--amber);background:var(--panel);color:#fff;font-size:20px;cursor:pointer}
+#snd,#mus,#fs{pointer-events:auto;width:44px;height:44px;border-radius:14px;border:2px solid var(--amber);background:var(--panel);color:#fff;font-size:20px;cursor:pointer}
 
 #effects{position:absolute;top:78px;left:50%;transform:translateX(-50%);display:flex;gap:6px;flex-wrap:wrap;justify-content:center;pointer-events:none;z-index:11;width:94%}
 .chip{display:none;position:relative;overflow:hidden;font-weight:900;font-size:12px;padding:5px 12px;border-radius:99px;background:rgba(10,10,10,.85);border:2px solid currentColor;box-shadow:0 0 16px currentColor}
@@ -347,9 +352,11 @@ body.touch #actbar .k{display:none}
 @keyframes hflash{0%{transform:scale(1.06);background:rgba(253,224,71,.35)}100%{transform:scale(1)}}
 
 @media (max-width:640px){
-  #rightbox{display:grid;grid-template-columns:auto auto;gap:4px;align-items:stretch}
+  #rightbox{display:grid;grid-template-columns:auto auto auto;grid-auto-flow:column;grid-template-rows:auto auto;gap:4px;align-items:stretch}
   #clockbox{grid-row:span 2}
-  #snd,#mus{width:34px;height:auto;min-height:26px;font-size:14px;border-radius:10px;padding:0}
+  #snd,#mus,#fs{width:32px;height:auto;min-height:26px;font-size:14px;border-radius:10px;padding:0}
+  #hud{gap:5px;padding-left:calc(8px + env(safe-area-inset-left));padding-right:calc(8px + env(safe-area-inset-right))}
+  #fs{grid-row:span 2;font-size:18px}
   #clock{font-size:14px}
   #clockbox{min-width:58px;padding:5px 8px}
   .val{font-size:15px}
@@ -390,6 +397,7 @@ body.touch #actbar .k{display:none}
       </div>
       <button id="snd" title="Zvuk">🔊</button>
       <button id="mus" title="Další písnička">⏭️</button>
+      <button id="fs" class="fs-btn" title="Celá obrazovka (F)">⛶</button>
     </div>
   </div>
 
@@ -512,8 +520,9 @@ body.touch #actbar .k{display:none}
       </div>
       <button class="btn" id="go">USEDNOUT K BARU 🍻</button>
       <button class="btn sec" id="howto">❓ Jak se to hraje</button>
-      <div class="hint kb">Klikej na drinky (rychle za sebou = COMBO) • Balanc: <kbd>A</kbd> <kbd>D</kbd> / šipky<br>Plnej močák → <kbd>T</kbd> 🚽 záchod • <kbd>Mezerník</kbd> = vypij nejbližší / páka<br><kbd>E</kbd> / 🎯 = AKCE: 💋 pusa holkám, 🥂 panák, 💨 prd, 🎰 herna s ruletou (rychle: <kbd>1</kbd>–<kbd>6</kbd>)</div>
-      <div class="hint tc">Ťukej na drinky (rychle za sebou = COMBO)<br>Balanc: nakláněj telefon nebo drž ⬅ ➡ • Plnej močák → 🚽<br>🎯 = AKCE: 💋 pusa holkám, 🥂 panák, 💨 prd, 🎰 herna s ruletou</div>
+      <button class="btn sec fs-btn tc" id="fs-start">📱 Hrát na celou obrazovku</button>
+      <div class="hint kb">Klikej na drinky (rychle za sebou = COMBO) • Balanc: <kbd>A</kbd> <kbd>D</kbd> / šipky<br>Plnej močák → <kbd>T</kbd> 🚽 záchod • <kbd>Mezerník</kbd> = vypij nejbližší / páka<br>Akce dole na liště: 💋 pusa holkám, 🥂 panák, 💨 prd, 🎰 herna (rychle: <kbd>1</kbd>–<kbd>6</kbd>) • <kbd>F</kbd> = celá obrazovka</div>
+      <div class="hint tc">Ťukej na drinky (rychle za sebou = COMBO)<br>Balanc: nakláněj telefon nebo drž ⬅ ➡ • Plnej močák → 🚽<br>Akce dole na liště: 💋 pusa holkám, 🥂 panák, 💨 prd, 🎰 herna</div>
       <div class="lb" id="lb-start"></div>
     </div>
   </div>
@@ -576,6 +585,20 @@ body.touch #actbar .k{display:none}
 
   <button id="chat-fab" class="chat-btn" aria-label="Hospodský chat">💬<span id="chat-badge"></span></button>
   <div id="chat-toast"></div>
+  <div class="ov hidden" id="ios-fs">
+    <div class="card">
+      <div class="big-emoji">📱⛶</div>
+      <h2>CELÁ OBRAZOVKA NA IPHONU</h2>
+      <p class="subt">Safari na iPhonu nedovolí webu zapnout celou obrazovku. Ale když si hru přidáš na plochu, spouští se jako aplikace — přes celý displej a bez lišt.</p>
+      <div class="tut">
+        <div><b>1️⃣</b><p>Dole v Safari klepni na <strong>Sdílet</strong> (čtvereček se šipkou nahoru ⬆️).</p></div>
+        <div><b>2️⃣</b><p>Sjeď dolů a dej <strong>Přidat na plochu</strong>, pak <strong>Přidat</strong>.</p></div>
+        <div><b>3️⃣</b><p>Spusť hru z plochy přes ikonu <strong>🍺 Štamgast</strong>. Jméno, rekord i žebříček zůstanou.</p></div>
+      </div>
+      <button class="btn" id="ios-fs-x">JASNĚ 👍</button>
+    </div>
+  </div>
+
   <div id="toast">Zkopírováno! 📋</div>
   <div id="err">Nepodařilo se načíst 3D engine (three.js). Zkontroluj internet a obnov stránku.</div>
 </div>
@@ -647,6 +670,36 @@ function enableTilt() {
     } else tilt.on = true;
   } catch (e) {}
 }
+
+/* ---------- celá obrazovka ---------- */
+const FS_EL = document.documentElement;
+const canFS = !!(FS_EL.requestFullscreen || FS_EL.webkitRequestFullscreen);
+const isIOS = /iPhone|iPod|iPad/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = !!(navigator.standalone || (window.matchMedia && window.matchMedia('(display-mode: fullscreen), (display-mode: standalone)').matches));
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function enterFS() {
+  if (isFS() || !canFS) return;
+  try {
+    const r = (FS_EL.requestFullscreen || FS_EL.webkitRequestFullscreen).call(FS_EL, { navigationUI: 'hide' });
+    if (r && r.catch) r.catch(() => {});
+  } catch (e) {}
+}
+function toggleFS() {
+  if (isFS()) { try { const r = (document.exitFullscreen || document.webkitExitFullscreen).call(document); if (r && r.catch) r.catch(() => {}); } catch (e) {} return; }
+  if (canFS) enterFS();
+  else if (isIOS && !isStandalone) { document.getElementById('ios-fs').classList.remove('hidden'); }
+}
+function updateFsBtns() {
+  const show = !isStandalone && (canFS || isIOS);
+  document.querySelectorAll('.fs-btn').forEach(b => {
+    if (!show) { b.style.display = 'none'; return; }
+    b.style.display = '';
+    if (b.id === 'fs') b.textContent = isFS() ? '🗗' : '⛶';
+    else b.textContent = isFS() ? '↩️ Zrušit celou obrazovku' : '📱 Hrát na celou obrazovku';
+  });
+}
+document.addEventListener('fullscreenchange', () => { updateFsBtns(); });
+document.addEventListener('webkitfullscreenchange', () => { updateFsBtns(); });
 
 /* ---------- jméno + 5. pád ---------- */
 let NAME = 'Martin', VOC = 'Martine';
@@ -2953,9 +3006,7 @@ function startGame() {
   if (!validName()) { needName(); return; }
   $('tut').classList.add('hidden');
   enableTilt();
-  if (isTouch && document.documentElement.requestFullscreen && !document.fullscreenElement) {
-    try { document.documentElement.requestFullscreen().catch(() => {}); } catch (e) {}
-  }
+  if (isTouch) enterFS();
   audio.init();
   NAME = validName() || NAME; VOC = vocative(NAME);
   store.set('stamgast_name2', NAME);
@@ -2990,6 +3041,7 @@ function bindInputs() {
     if (e.code === 'ArrowLeft' || e.code === 'KeyA') { keys.left = true; if (!e.repeat) danceInput(-1); }
     if (e.code === 'ArrowRight' || e.code === 'KeyD') { keys.right = true; if (!e.repeat) danceInput(1); }
     if (e.code === 'KeyT') goToilet();
+    if (e.code === 'KeyF' && !e.repeat) toggleFS();
     if (e.code === 'Space' || e.code === 'Enter') {
       e.preventDefault();
       if (state === 'START') { if (!$('tut').classList.contains('hidden')) $('tut-go').click(); else requestStart(); }
@@ -3014,6 +3066,9 @@ function bindInputs() {
   $('chat-open2').addEventListener('click', () => openChat('end'));
   $('chat-x').addEventListener('click', closeChat);
   $('chat-fab').addEventListener('click', () => { audio.init(); openChat(); });
+  document.querySelectorAll('.fs-btn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); toggleFS(); }));
+  $('ios-fs-x').addEventListener('click', () => $('ios-fs').classList.add('hidden'));
+  updateFsBtns();
   audio.onTrack = title => { if (state === 'PLAYING') popup(W / 2, H * 0.22, '🎵 ' + title, '#7dd3fc', 15); };
   $('mus').addEventListener('click', () => {
     audio.init();
