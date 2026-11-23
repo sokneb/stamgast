@@ -253,6 +253,20 @@ body.touch #actbar .k{display:none}
 #chat-in:focus{border-color:var(--amber)}
 #chat-send{background:linear-gradient(135deg,#fbbf24,#d97706);border:none;border-radius:14px;width:54px;font-size:20px;cursor:pointer;color:#1c0a00;font-weight:900}
 #chat-send:disabled{opacity:.5}
+#gif-btn{flex-shrink:0;width:52px;border-radius:14px;border:2px solid #a855f7;background:#2e1065;color:#e9d5ff;font-family:'Bungee',sans-serif;font-size:14px;cursor:pointer}
+#gif-btn.on{background:#a855f7;color:#fff}
+#gif-panel{display:none;margin-top:10px;background:#0c0a09;border:2px solid #a855f7;border-radius:16px;padding:8px}
+#gif-panel.on{display:block}
+.gif-top{display:flex;gap:6px;margin-bottom:8px}
+#gif-q{flex:1;min-width:0;-webkit-user-select:text;user-select:text;background:#292524;border:2px solid #57534e;color:#fff;border-radius:12px;padding:9px 11px;font-family:inherit;font-size:16px;outline:none}
+#gif-q:focus{border-color:#a855f7}
+#gif-x{width:40px;border-radius:12px;border:2px solid #57534e;background:#292524;color:#fff;cursor:pointer;font-size:16px}
+#gif-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:min(230px,30vh);overflow-y:auto}
+#gif-grid button{padding:0;border:none;border-radius:8px;overflow:hidden;background:#292524;cursor:pointer;aspect-ratio:1;display:block}
+#gif-grid img{width:100%;height:100%;object-fit:cover;display:block}
+#gif-grid .gif-msg{grid-column:1/-1;color:var(--muted);font-weight:700;font-size:13px;text-align:center;padding:20px 6px}
+.gif-by{font-size:10px;color:var(--muted);text-align:right;margin-top:5px;font-weight:700}
+.cm img.cgif{display:block;max-width:min(220px,58vw);max-height:200px;border-radius:10px;margin-top:4px;background:#1c1917}
 #chat-err{min-height:16px;font-size:12px;color:#f87171;font-weight:700;margin-top:4px}
 .legend.extras{background:#2a1a0a;border-color:#92400e}
 .tut{display:flex;flex-direction:column;gap:8px;margin:8px 0 14px;text-align:left}
@@ -511,7 +525,12 @@ body.touch #actbar .k{display:none}
         <button id="chat-x" aria-label="Zavřít">✕</button>
       </div>
       <div id="chat-list"><div class="chat-empty">Načítám…</div></div>
-      <form id="chat-form"><input id="chat-in" maxlength="200" placeholder="Napiš něco do hospody…" autocomplete="off" enterkeyhint="send"><button type="submit" id="chat-send" aria-label="Poslat">➤</button></form>
+      <div id="gif-panel">
+        <div class="gif-top"><input id="gif-q" maxlength="50" placeholder="🔎 Hledej GIF… (pivo, fail, tanec)" autocomplete="off" enterkeyhint="search"><button type="button" id="gif-x" aria-label="Zavřít GIFy">✕</button></div>
+        <div id="gif-grid"></div>
+        <div class="gif-by">Powered by <b>GIPHY</b></div>
+      </div>
+      <form id="chat-form"><button type="button" id="gif-btn" aria-label="Poslat GIF">GIF</button><input id="chat-in" maxlength="200" placeholder="Napiš něco do hospody…" autocomplete="off" enterkeyhint="send"><button type="submit" id="chat-send" aria-label="Poslat">➤</button></form>
       <div id="chat-err"></div>
     </div>
   </div>
@@ -589,6 +608,8 @@ const PLAYLIST = [
 const SB_URL = 'https://oknmmleqjbcvmhmoqcbu.supabase.co';
 const SB_KEY = 'sb_publishable_kG0AnmmFYfsOPP-_AGzkMg_qRgVxJCG';
 const ONLINE = !!(SB_URL && SB_KEY);
+/* GIFy v chatu – API klíč z developers.giphy.com (veřejný klíč pro web) */
+const GIPHY_KEY = 'BFAubCpj4Lc223mQGbQBwEzVD9lJ309w';
 
 /* ---------- mobil ---------- */
 const isTouch = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || 'ontouchstart' in window;
@@ -2493,11 +2514,79 @@ const chat = { open: false, loaded: false, failed: false, busy: false, lastId: 0
 function chatName() { return validName() || (state !== 'START' ? NAME : ''); }
 const isMine = r => r.kind === 'msg' && !!chatName() && r.name.toLowerCase() === chatName().toLowerCase();
 const chatTime = r => new Date(r.created_at).toLocaleTimeString('cs-CZ', { hour: '2-digit', minute: '2-digit' });
+const GIF_ID = /^[A-Za-z0-9]{5,40}$/;
+const gifSrc = (id, ext = 'webp') => `https://media.giphy.com/media/${id}/200w.${ext}`;
+function gifImg(id, cls) {
+  const img = document.createElement('img');
+  img.className = cls; img.alt = 'GIF'; img.loading = 'lazy'; img.decoding = 'async';
+  img.src = gifSrc(id); img.onerror = () => { if (!img.dataset.fb) { img.dataset.fb = 1; img.src = gifSrc(id, 'gif'); } };
+  return img;
+}
+const msgText = r => (r.msg && r.msg.trim()) ? r.msg : (r.gif ? '🎞️ GIF' : '');
 function msgEl(r) {
   const d = document.createElement('div');
   if (r.kind === 'game') { d.className = 'cm game'; d.innerHTML = `🏆 <b style="display:inline;font-size:12.5px">${escapeHtml(r.name)}</b> ${escapeHtml(r.msg)}<time>${chatTime(r)}</time>`; }
-  else { d.className = 'cm' + (isMine(r) ? ' me' : ''); d.innerHTML = `<b>${escapeHtml(r.name)}<time>${chatTime(r)}</time></b>${escapeHtml(r.msg)}`; }
+  else {
+    d.className = 'cm' + (isMine(r) ? ' me' : '');
+    d.innerHTML = `<b>${escapeHtml(r.name)}<time>${chatTime(r)}</time></b>${escapeHtml(r.msg || '')}`;
+    if (r.gif && GIF_ID.test(r.gif)) {
+      const img = gifImg(r.gif, 'cgif');
+      img.addEventListener('load', () => { const el = $('chat-list'); if (el.scrollHeight - el.scrollTop - el.clientHeight < 260) el.scrollTop = el.scrollHeight; }, { once: true });
+      d.appendChild(img);
+    }
+  }
   return d;
+}
+
+/* výběr GIFů (GIPHY) */
+const gifs = { open: false, cache: {}, timer: null, q: null };
+function toggleGifs(force) {
+  const open = force === undefined ? !gifs.open : force;
+  gifs.open = open;
+  $('gif-panel').classList.toggle('on', open); $('gif-btn').classList.toggle('on', open);
+  if (!open) return;
+  if (!GIPHY_KEY) { $('gif-grid').innerHTML = '<div class="gif-msg">GIFy se ještě nastavujou 🛠️ Zkus to brzo!</div>'; return; }
+  if (gifs.q === null) loadGifs('');
+  if (!isTouch) setTimeout(() => $('gif-q').focus(), 50);
+}
+async function loadGifs(q) {
+  q = q.trim().slice(0, 50); gifs.q = q;
+  const grid = $('gif-grid');
+  if (gifs.cache[q]) { renderGifs(gifs.cache[q]); return; }
+  grid.innerHTML = '<div class="gif-msg">Hledám… 🔎</div>';
+  try {
+    const url = `https://api.giphy.com/v1/gifs/${q ? 'search' : 'trending'}?api_key=${encodeURIComponent(GIPHY_KEY)}&limit=24&rating=pg-13&lang=cs${q ? '&q=' + encodeURIComponent(q) : ''}`;
+    const r = await fetch(url);
+    if (r.status === 429) throw new Error('limit');
+    if (!r.ok) throw new Error('err');
+    const j = await r.json();
+    const ids = (j.data || []).map(g => g.id).filter(id => GIF_ID.test(id));
+    gifs.cache[q] = ids;
+    if (gifs.q === q) renderGifs(ids);
+  } catch (e) {
+    grid.innerHTML = `<div class="gif-msg">${e.message === 'limit' ? 'GIPHY má teď moc požadavků, zkus to za chvíli 🙏' : 'GIFy se nepodařilo načíst 😢'}</div>`;
+  }
+}
+function renderGifs(ids) {
+  const grid = $('gif-grid'); grid.innerHTML = '';
+  if (!ids.length) { grid.innerHTML = '<div class="gif-msg">Nic jsem nenašel 🤷 Zkus jiný slovo.</div>'; return; }
+  ids.forEach(id => {
+    const b = document.createElement('button'); b.type = 'button'; b.title = 'Poslat GIF';
+    b.appendChild(gifImg(id, ''));
+    b.addEventListener('click', () => sendGif(id));
+    grid.appendChild(b);
+  });
+  grid.scrollTop = 0;
+}
+async function sendGif(id) {
+  if (!chatName()) { $('chat-err').textContent = '✍️ Nejdřív si na úvodní obrazovce napiš jméno.'; return; }
+  const txt = $('chat-in').value.trim();
+  if (/(https?:\/\/|www\.)/i.test(txt)) { $('chat-err').textContent = 'Odkazy sem nepatří 🙅'; return; }
+  try {
+    await chatPost(chatName(), txt, 'msg', id);
+    $('chat-in').value = ''; $('chat-err').textContent = ''; toggleGifs(false);
+    audio.init(); audio.tick(); await pollChat(true);
+  } catch (err) { $('chat-err').textContent = err.message; }
 }
 function renderChatList() {
   const el = $('chat-list'); el.innerHTML = '';
@@ -2519,13 +2608,13 @@ function renderPeek() {
   else if (!chat.msgs.length) html = 'Zatím ticho — napiš první zprávu! 🍺';
   else html = chat.msgs.slice(-3).map(r => r.kind === 'game'
     ? `<div class="g">🏆 <b>${escapeHtml(r.name)}</b> ${escapeHtml(r.msg)}</div>`
-    : `<div><b>${escapeHtml(r.name)}:</b> ${escapeHtml(r.msg)}</div>`).join('');
+    : `<div><b>${escapeHtml(r.name)}:</b> ${escapeHtml(msgText(r))}${r.gif && r.msg ? ' 🎞️' : ''}</div>`).join('');
   document.querySelectorAll('.cp-body').forEach(e => { e.innerHTML = html; });
 }
 function chatToast(r) {
   if (!(state === 'PLAYING' || state === 'HERNA' || state === 'WC')) return;
   const el = $('chat-toast');
-  el.innerHTML = r.kind === 'game' ? `💬 🏆 <b>${escapeHtml(r.name)}</b> ${escapeHtml(r.msg)}` : `💬 <b>${escapeHtml(r.name)}:</b> ${escapeHtml(r.msg)}`;
+  el.innerHTML = r.kind === 'game' ? `💬 🏆 <b>${escapeHtml(r.name)}</b> ${escapeHtml(r.msg)}` : `💬 <b>${escapeHtml(r.name)}:</b> ${escapeHtml(msgText(r))}${r.gif && r.msg ? ' 🎞️' : ''}`;
   el.classList.add('on'); clearTimeout(chat.toastT); chat.toastT = setTimeout(() => el.classList.remove('on'), 4500);
 }
 async function fetchChat() {
@@ -2533,7 +2622,7 @@ async function fetchChat() {
   chat.busy = true;
   try {
     const q = chat.loaded ? `&id=gt.${chat.lastId}&order=id.asc&limit=50` : '&order=id.desc&limit=60';
-    let rows = await (await sb('stamgast_chat?select=id,name,msg,kind,created_at' + q)).json();
+    let rows = await (await sb('stamgast_chat?select=id,name,msg,kind,created_at,gif' + q)).json();
     if (!chat.loaded) rows.reverse();
     const fresh = rows.filter(r => !chat.ids.has(r.id));
     fresh.forEach(r => { chat.ids.add(r.id); chat.lastId = Math.max(chat.lastId, r.id); chat.msgs.push(r); });
@@ -2588,12 +2677,13 @@ function openChat(from) {
 }
 function closeChat() {
   if (!chat.open) return;
-  chat.open = false; clearInterval(chat.timer);
+  chat.open = false; clearInterval(chat.timer); toggleGifs(false);
   $('chat').classList.add('hidden'); if (chat.returnTo) $(chat.returnTo).classList.remove('hidden');
   renderPeek();
 }
-async function chatPost(name, msg, kind) {
-  const r = await fetch(SB_URL + '/rest/v1/stamgast_chat', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify({ name, msg, kind }) });
+async function chatPost(name, msg, kind, gif) {
+  const body = { name, msg, kind }; if (gif) body.gif = gif;
+  const r = await fetch(SB_URL + '/rest/v1/stamgast_chat', { method: 'POST', headers: { apikey: SB_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' }, body: JSON.stringify(body) });
   if (!r.ok) { let m = 'Zprávu se nepodařilo poslat 😢'; try { const j = await r.json(); if (j.code === 'P0001') m = j.message; } catch (_) {} throw new Error(m); }
 }
 async function sendChat(e) {
@@ -2845,6 +2935,10 @@ function bindInputs() {
   });
   $('name').addEventListener('input', updateGoBtn);
   $('chat-form').addEventListener('submit', sendChat);
+  $('gif-btn').addEventListener('click', () => { if (!chatName()) { $('chat-err').textContent = '✍️ Nejdřív si na úvodní obrazovce napiš jméno.'; return; } toggleGifs(); });
+  $('gif-x').addEventListener('click', () => toggleGifs(false));
+  $('gif-q').addEventListener('input', e => { clearTimeout(gifs.timer); const v = e.target.value; gifs.timer = setTimeout(() => { if (GIPHY_KEY) loadGifs(v); }, 500); });
+  $('gif-q').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); clearTimeout(gifs.timer); if (GIPHY_KEY) loadGifs(e.target.value); } });
   if (!ONLINE) document.querySelectorAll('.chat-btn').forEach(b => { b.style.display = 'none'; });
   document.querySelectorAll('#d-bets button').forEach(b => b.addEventListener('click', () => rollDice(b.dataset.b)));
   $('pk-draw').addEventListener('click', pkDraw);

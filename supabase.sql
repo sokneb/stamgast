@@ -31,4 +31,25 @@ create or replace view public.stamgast_top with (security_invoker = true) as
   order by lower(btrim(name)), score desc, created_at asc;
 
 grant select on public.stamgast_top to anon, authenticated;
+
+-- ---------- hospodský chat ----------
+create table if not exists public.stamgast_chat (
+  id          bigint generated always as identity primary key,
+  name        text not null check (char_length(btrim(name)) between 1 and 18),
+  msg         text not null default '',
+  kind        text not null default 'msg' check (kind in ('msg', 'game')),
+  gif         text constraint stamgast_chat_gif_check check (gif is null or gif ~ '^[A-Za-z0-9]{5,40}$'),  -- jen GIPHY ID
+  ip_hash     text,
+  created_at  timestamptz not null default now(),
+  constraint stamgast_chat_msg_check check (
+    char_length(btrim(msg)) <= 200 and msg !~* '(https?://|www\.)'
+    and (char_length(btrim(msg)) >= 1 or gif is not null))
+);
+alter table public.stamgast_chat enable row level security;
+create policy "read recent chat" on public.stamgast_chat for select to anon, authenticated using (created_at > now() - interval '3 days');
+create policy "post chat" on public.stamgast_chat for insert to anon, authenticated with check (true);
+revoke all on public.stamgast_chat from anon, authenticated;
+grant select (id, name, msg, kind, gif, created_at) on public.stamgast_chat to anon, authenticated;
+grant insert (name, msg, kind, gif) on public.stamgast_chat to anon, authenticated;
+-- + trigger stamgast_chat_guard (limit 5 zpráv / 30 s podle hashe IP), viz migrace v Supabase
 grant select, insert on public.stamgast_scores to anon, authenticated;
