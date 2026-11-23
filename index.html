@@ -771,8 +771,10 @@ class Audio {
     });
     el.addEventListener('playing', () => { this.bgmFails = 0; });
     this.bgm = el; this.bgmVol = 0; this.bgmTarget = 0; this.bgmRate = 1;
-    const rest = PLAYLIST.map((_, i) => i).slice(1).sort(() => Math.random() - 0.5);
-    this.order = [0, ...rest]; this.trackIdx = 0;
+    // „Ta naše hospoda“ hraje vždycky jako poslední, ostatní před ní v náhodném pořadí
+    const last = PLAYLIST.findIndex(t => t.src.includes('ta-nase-hospoda'));
+    const rest = PLAYLIST.map((_, i) => i).filter(i => i !== last).sort(() => Math.random() - 0.5);
+    this.order = last >= 0 ? [...rest, last] : rest; this.trackIdx = 0;
   }
   playBgm() {
     this.initBgm();
