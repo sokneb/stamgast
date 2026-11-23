@@ -1377,10 +1377,11 @@ for (const w in VOICE_MAP) {
   }
   voiceIdx[w] = { ex, pats };
 }
-/* Mluví jen jeden naráz.
+/* Mluví max. dva naráz (trocha hospodského chaosu), stejná postava nikdy sama přes sebe.
    priorita 0 = kecy na pozadí (jen občas, nikdy nepřeruší), 1 = reakce na dění (počká ve frontě),
    2 = herna / důležité (může přerušit nižší), 3 = mamka a telefon (přeruší všechno) */
-const VOICE = { el: null, cur: null, pending: null, lastEnd: 0, prioOverride: null };
+const VOICE_CHANNELS = 2;
+const VOICE = { ch: [], pending: null, prioOverride: null };
 const voicesNow = () => performance.now() / 1000;
 function voiceCode(who, raw) {
   const idx = voiceIdx[who]; if (!idx || !raw) return null;
@@ -1389,43 +1390,54 @@ function voiceCode(who, raw) {
   for (const [re, c] of idx.pats) if (re.test(key)) return c;
   return null;
 }
-function voiceEl() {
-  if (VOICE.el) return VOICE.el;
-  const el = VOICE.el = document.createElement('audio'); el.preload = 'auto';
-  try { el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
-  const done = () => {
-    VOICE.cur = null; VOICE.lastEnd = voicesNow();
-    const p = VOICE.pending; VOICE.pending = null;
-    if (p && voicesNow() - p.t < 2.5 && state !== 'OVER' && state !== 'START') setTimeout(() => startVoice(p.code, p.who, p.prio), 350);
-  };
-  el.addEventListener('ended', done); el.addEventListener('error', done);
-  return el;
+function voiceChannels() {
+  while (VOICE.ch.length < VOICE_CHANNELS) {
+    const c = { el: document.createElement('audio'), cur: null, lastEnd: 0 };
+    c.el.preload = 'auto';
+    try { c.el.preservesPitch = false; c.el.mozPreservesPitch = false; c.el.webkitPreservesPitch = false; } catch (e) {}
+    const done = () => {
+      c.cur = null; c.lastEnd = voicesNow();
+      const p = VOICE.pending; VOICE.pending = null;
+      if (p && voicesNow() - p.t < 2.5 && state !== 'OVER' && state !== 'START' && !VOICE.ch.some(x => x.cur && x.cur.who === p.who))
+        setTimeout(() => { if (!c.cur) startVoice(c, p.code, p.who, p.prio); }, 250);
+    };
+    c.el.addEventListener('ended', done); c.el.addEventListener('error', done);
+    VOICE.ch.push(c);
+  }
+  return VOICE.ch;
 }
-const voiceBusy = () => !!VOICE.cur;
-function startVoice(code, who, prio) {
-  const el = voiceEl();
-  try { el.pause(); } catch (e) {}
-  VOICE.cur = { prio, who };
-  el.src = `voice/${code}.wav`;
+const voiceBusy = () => VOICE.ch.some(c => c.cur);
+function startVoice(c, code, who, prio) {
+  try { c.el.pause(); } catch (e) {}
+  c.cur = { prio, who };
+  c.el.src = `voice/${code}.wav`;
   // opilej Martin mluví pomaleji a hlouběji
   const d = clamp((promile || 0) / 4.2, 0, 1);
-  el.playbackRate = who === 'me' ? 1 - d * 0.16 : 1;
-  el.volume = 1;
-  el.play().catch(() => { VOICE.cur = null; });
+  c.el.playbackRate = who === 'me' ? 1 - d * 0.16 : 1;
+  c.el.volume = 0.95;
+  c.el.play().catch(() => { c.cur = null; });
 }
 function playVoice(who, raw, prio) {
   if (prio === undefined) prio = VOICE.prioOverride !== null ? VOICE.prioOverride : 1;
   const code = voiceCode(who, raw);
   if (!code || !audio.on) return;
-  const cur = VOICE.cur;
-  if (cur) {
-    if (prio >= 2 && (prio > cur.prio || prio === 3)) return startVoice(code, who, prio); // důležité přeruší
-    const p = VOICE.pending;                                                       // reakce počká (první vyhrává)
-    if (prio >= 1 && (!p || prio > p.prio || voicesNow() - p.t > 2.5)) VOICE.pending = { code, who, prio, t: voicesNow() };
-    return;                                                                        // kecy se zahodí
+  const chs = voiceChannels();
+  // stejná postava nemluví sama přes sebe: novější důležitější hláška ji přeruší, jinak se zahodí
+  const same = chs.find(c => c.cur && c.cur.who === who);
+  if (same) { if (prio >= 1 && prio >= same.cur.prio) startVoice(same, code, who, prio); return; }
+  const free = chs.find(c => !c.cur);
+  if (free) {
+    if (prio === 0) {
+      const busy = chs.some(c => c.cur);
+      if (voicesNow() - free.lastEnd < 1.2 || Math.random() > (busy ? 0.45 : 0.7)) return;   // kecy jen občas
+    }
+    return startVoice(free, code, who, prio);
   }
-  if (prio === 0 && (voicesNow() - VOICE.lastEnd < 2.5 || Math.random() > 0.55)) return;
-  startVoice(code, who, prio);
+  // oba kanály mluví
+  const low = chs.reduce((a, b) => (a.cur.prio <= b.cur.prio ? a : b));
+  if (prio >= 2 && (prio > low.cur.prio || prio === 3)) return startVoice(low, code, who, prio); // důležité přeruší
+  const p = VOICE.pending;                                                                       // reakce počká (první vyhrává)
+  if (prio >= 1 && (!p || prio > p.prio || voicesNow() - p.t > 2.5)) VOICE.pending = { code, who, prio, t: voicesNow() };
 }
 function chatter(fn) { VOICE.prioOverride = 0; try { fn(); } finally { VOICE.prioOverride = null; } }
 
