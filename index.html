@@ -902,6 +902,7 @@ const ITEMS = {
   gold:   { emoji: '🌟', name: 'Zlatá desítka', promile: 0.3, bladder: 10, score: 1500, w: 0, color: 0xffd700, css: '#ffd700' },
 };
 const HOUR_SEC = 22, NIGHT_LEN = 8;
+const FALL_ANGLE = 1.0; // náklon (radiány), při kterém spadneš ze židle
 const HOUR_LINES = {
   21: ['vrchni', 'Devět hodin. Začíná to houstnout 🍺'],
   22: ['klara', 'Už je deset a ty pořád sedíš? 😮'],
@@ -1644,7 +1645,7 @@ function consume(it) {
   if (it.type === 'water') stats.water++;
   buzz(it.type === 'gold' ? [40, 30, 40] : 15);
   if (def.effect) effects[def.effect] = EFFECTS[def.effect].dur;
-  if (def.promile > 0.1) rollVel += (Math.random() < 0.5 ? -1 : 1) * (0.12 + def.promile * 0.45 + promile * 0.05);
+  if (def.promile > 0.1) rollVel += (Math.random() < 0.5 ? -1 : 1) * (0.08 + def.promile * 0.28 + promile * 0.03);
   const pts = Math.round(def.score * mult());
   score += pts;
   popup(sp.x, sp.y, `+${fmtNum(pts)}`, def.css, pts > 800 ? 28 : 20);
@@ -1801,7 +1802,7 @@ function endMini(win) {
     else { stats.tanec = true; bigText('💃 KRÁL PARKETU!', '#4ade80'); say('tereza', 'Ty umíš tancovat?! 😳💃', 2.6); }
   } else {
     audio.bad(); buzz(150); shake = 0.6;
-    rollVel += (Math.random() < 0.5 ? -1 : 1) * (1.3 + promile * 0.15);
+    rollVel += (Math.random() < 0.5 ? -1 : 1) * (0.95 + promile * 0.1);
     if (type === 'paka') { bigText('🦴 PEPA TĚ ZLOMIL!', '#f87171'); say('me', 'AU! Moje rameno!! 😭', 2.4); }
     else { bigText('🦶 ŠLÁPLS JÍ NA NOHU!', '#f87171'); say('tereza', 'AU! Ty dřevo! 😤', 2.4); }
   }
@@ -1898,7 +1899,7 @@ function kiss(who) {
       setTimeout(() => say(who, pick(['FUUUJ! 🤮🤮🤮', 'TY PRASE!! 🐷', 'Já se jdu umejt… asi do Vltavy 😭']), 2.6), 700);
     } else if (r < 0.55) {
       audio.slap(); buzz(120); flash = 0.35; shake = 0.9; stats.slaps++;
-      rollVel += -g.side * (1.4 + promile * 0.2); g.slap = 1;
+      rollVel += -g.side * (1.0 + promile * 0.12); g.slap = 1;
       bigText('🖐️ PLESK!', '#f87171'); floatEmoji('💢', _hp, 3);
       say(who, pick(['Co si to dovoluješ?! 😤', 'Na to zapomeň, {V}!', 'Ruce k sobě, prasáku! 🐷', 'Smrdíš jak popelník a chceš pusu?! 🚬']), 2.6);
       setTimeout(() => say(other, 'HAHAHA, to sedlo! 😂🖐️', 2.4), 800);
@@ -2460,7 +2461,7 @@ function updatePlaying(dt) {
   if (eventT <= 0) { fireEvent(); eventT = rand(10, 15); }
   if (pepaT > 0) {
     pepaT -= dt;
-    if (pepaT <= 0) { rollVel += pepaDir * (1.6 + promile * 0.2); shake = 0.6; audio.thud(); buzz(80); bigText('*PLÁC* ČAU KÁMO!! 👋', '#fde047'); setTimeout(() => say('me', 'PEPO, TY VOLE!! 😤', 2), 300); }
+    if (pepaT <= 0) { rollVel += pepaDir * (1.15 + promile * 0.12); shake = 0.6; audio.thud(); buzz(80); bigText('*PLÁC* ČAU KÁMO!! 👋', '#fde047'); setTimeout(() => say('me', 'PEPO, TY VOLE!! 😤', 2), 300); }
   }
   if (phone) {
     phone.t -= dt; phone.ringT -= dt;
@@ -2475,7 +2476,7 @@ function updatePlaying(dt) {
     hiccupT -= dt;
     if (hiccupT <= 0) {
       hiccupT = rand(5, 11) / (0.6 + promile * 0.25);
-      rollVel += (Math.random() < 0.5 ? -1 : 1) * (0.5 + promile * 0.15);
+      rollVel += (Math.random() < 0.5 ? -1 : 1) * (0.35 + promile * 0.1);
       audio.hiccup(); buzz(30); shake = Math.max(shake, 0.2); popup(W / 2 + rand(-80, 80), H * 0.6, '*ŠKYT!*', '#fde047', 26);
     }
   }
@@ -2491,14 +2492,14 @@ function updatePlaying(dt) {
   const wob = Math.sin(noiseT * 1.3) * 0.6 + Math.sin(noiseT * 2.9 + 1.7) * 0.35 + Math.sin(noiseT * 0.67 + 4) * 0.5;
   const grace = Math.min(1, 0.35 + elapsed / 8) * (mini && mini.type === 'paka' ? 0.5 : 1);
   const night = 1 + (elapsed / HOUR_SEC) * 0.05;
-  const wobF = wob * (0.22 + promile * 0.42) * stab * fireHard * grace * night;
-  rollVel += (Math.sin(rollAngle) * (2.1 + promile * 0.5) * stab * grace + wobF) * dt;
+  const wobF = wob * (0.15 + promile * 0.28) * stab * fireHard * grace * night;
+  rollVel += (Math.sin(rollAngle) * (1.5 + promile * 0.32) * stab * grace + wobF) * dt;
   let input = clamp((keys.right ? 1 : 0) - (keys.left ? 1 : 0) + tiltInput(), -1, 1);
   if (invertT > 0) input = -input;
-  rollVel += input * (effects.turbo > 0 ? 6.5 : 4.7) * dt;
-  rollVel *= Math.pow(0.3, dt);
+  rollVel += input * (effects.turbo > 0 ? 7 : 5.6) * dt;
+  rollVel *= Math.pow(0.2, dt);
   rollAngle += rollVel * dt;
-  if (Math.abs(rollAngle) >= 0.85) { startEnding('FALL'); return; }
+  if (Math.abs(rollAngle) >= FALL_ANGLE) { startEnding('FALL'); return; }
 
   // promile, močák, skóre
   promile = Math.max(0, promile - 0.04 * dt);
@@ -2982,7 +2983,7 @@ function updateHUD() {
   $('actbar').classList.toggle('on', state === 'PLAYING');
   $('ab-wc-p').textContent = Math.floor(bladder) + '%';
   $('ab-wc').classList.toggle('warn', bladder > 80);
-  const n = clamp(rollAngle / 0.85, -1, 1);
+  const n = clamp(rollAngle / FALL_ANGLE, -1, 1);
   hud.needle.style.left = (50 + n * 46) + '%';
   hud.needle.style.background = Math.abs(n) > 0.7 ? '#ef4444' : '#fbbf24';
   hud.needle.style.boxShadow = `0 0 12px ${Math.abs(n) > 0.7 ? '#ef4444' : '#fbbf24'}`;
