@@ -604,6 +604,9 @@ const PLAYLIST = [
   { src: 'music/poverty-and-famine.mp3', title: 'Poverty and Famine' },
 ];
 
+/* hlasy postav: text hlášky -> nahrávka ve složce voice/ (generováno z hlasky.md) */
+const VOICE_MAP = {"me":{"Tak na zdraví! 🍻":"me-01","Dneska jen jedno, slibuju.":"me-02","Vrchní, jedno točený!":"me-03","Zítra test? Ále, v pohodě.":"me-04","Já mám výdrž, vy nevíte.":"me-05","Ty jo, ta židle se nějak hejbe…":"me-06","Jsem úplně v pohodě, brácho 🥴":"me-07","Kdo nakřivo postavil tu hospodu?":"me-08","Miluju vás všechny, vole ❤️":"me-09","Já bych si dal ještě jedno. Nebo dvě.":"me-10","Já sem… já sem v pohodě… *škyt*":"me-11","Proč jsou tu dva vrchní?!":"me-12","Napíšu bejvalce. Nezastavuj mě.":"me-13","Já umím lítat! Fakt!":"me-14","Kde mám mobil… aha, v ruce.":"me-15","Ta podlaha se na mě dívá.":"me-16","Mám v puse chuť, jako by mi tam chcípnul jezevec 🦡":"me-17","Ten utopenec se mi vrací… pozdravuje 🌭":"me-18","Nevím, jestli mám škytavku, nebo jdu blít 🤢":"me-19","Prdnul jsem a teď si nejsem jistej, jestli jen prdnul 😰":"me-20","Olízal jsem pult, myslel jsem, že je to panák 👅":"me-21","Někdo mi nalil pivo do bot. Aha, to jsem byl já 🥾":"me-22","Moje játra právě podala výpověď 📄":"me-23","Kdo tu smrdí? …aha, já 🧄":"me-24","Vidím dvojmo. Takže mám dvě piva. Win-win 🍺🍺":"me-25","Na záchodě jsem viděl věci, který neuvidíš ani v hororu 💀":"me-26","Mám v kapse něco mokrýho a nevím co 😨":"me-27","Desítka, základ zdravý výživy 🍺":"me-28","Pivo je tekutej chleba!":"me-29","Ááá, orosená…":"me-30","Tuzemák! Pálí jak čert 🥃":"me-31","Uff, to byl Tuzemák nebo benzín?":"me-32","Zelená! Svěží dech na rande 💚":"me-33","Peprmint! Teď voním jak žvejkačka.":"me-34","BABIČKO, CO JSI TAM DALA?! 🔥":"me-35","Sedmdesát procent a vůně stodoly!":"me-36","VIDÍM ZVUKY! TURBO MÓD ⚡":"me-37","Srdce mi bije v rytmu techna!":"me-38","Kebab je základ. Vystřízlivění! 🥙":"me-39","S česnekem, ostrou a vším!":"me-40","Utopenec z roku 2009… VIDÍM BARVY 🌈":"me-41","Ten utopenec na mě mluví!":"me-42","Voda? …Kdo mi to objednal 💧":"me-43","Hydratace, brácho. Respekt.":"me-44","U Honzy, učíme se na test 📚":"me-45","V hospodě, ty vole 🍺":"me-46","Blblblbl… 🥴":"me-47","Mám rýmu, mami 🤧":"me-48","Sem úplně na šrot":"me-49","*škyt* …cože?":"me-50","V devět, slibuju ⏰":"me-51","Až zavřou 🍻":"me-52","Co je to „domov“? 🤔":"me-53","Jasně, byla výborná 🥪":"me-54","Vyměnil jsem ji za panáka":"me-55","Jakou svačinu?!":"me-56","To je Honzův táta, poslouchá rádio 📻":"me-57","DECHOVKAAA! 🎺":"me-58","To mi hraje v hlavě":"me-59","Všechny, i na příští týden ✍️":"me-60","Úkol je pít 🍺":"me-61","Úkoly jsou pro slabý":"me-62","Stačí 200, díky 😇":"me-63","Na celou rundu! 💸":"me-64","Pět litrů":"me-65","Jo mami, jasně… pa pa pa ❤️":"me-66","…mami? Haló? Mami?! 😰":"me-67","AU! Moje rameno!! 😭":"me-68","Pojď sem, kotě… 😚":"me-69","Hele… můžu ti dát pusu? 😳":"me-70","*špulí rty* 😗":"me-71","Já… ehm… máš hezký… lokty? 😳":"me-72","*BLURP* …pardon, ublinkl jsem ti do pusy 🤢":"me-73","Netrefil jsem se a olízal jsem ti ucho 👂👅":"me-74","Zzz… 😴 (usnul jsi jí na rameni a slintáš)":"me-75","Chutná po pivu a třísek. Beru 👅":"me-76","Už nemám co… zkusím za chvíli 😣":"me-77","To nebyl já! …byl 😬":"me-78","Ups. Ten kebab chtěl ven 🥙💨":"me-79","Pardon, utopenec se hlásí o slovo 🌭💨":"me-80","Tohle byla symfonie 🎺":"me-81","Cítíte to? To je svoboda 🦅":"me-82","Rezervovaný místo, nikdo si nepřisedne 😎":"me-83","Ou… ou ne… 🤢":"me-84","Ten utopenec chce ven…":"me-85","Kluci… mně je nějak… 🤢":"me-86","Proč se ten bar točí na druhou stranu?! 🌀":"me-87","Pardon… to byl ten utopenec 🌭":"me-88","Už je mi líp! 😁":"me-89","Kdo chce kousek? 🤢":"me-90","Vidíte tu mrkev? Mrkev jsem nejedl 🥕":"me-91","PEPO, TY VOLE!! 😤":"me-92","Kde je levá?! KDE JE LEVÁ?!":"me-93","WOOOOAAAAH!!! 😱":"me-94","Já… já už to neudržím… 💦😩":"me-95","Já sem… úplně… v po… 💤":"me-96"},"klara":{"[jméno v 5. pádě], ty jedeš!":"klara-01","Pozveš mě taky na jedno? 😏":"klara-02","Pozor, ať nespadneš ze židle!":"klara-03","Hele, nemáš zítra písemku?":"klara-04","Já tě natáčím, jo? 📱":"klara-05","Tohle je lepší než Netflix 😂":"klara-06","FUJ! Co to bylo?! 🤢":"klara-07","To smrdí až do Brna 💀":"klara-08","Voda? Fakt? 😐":"klara-09","Ta babiččina? Ta je v EU zakázaná!":"klara-10","[jméno v 5. pádě], proč hladíš ten pult?":"klara-11","Jdu domů… ne, kecám, zůstávám 😂":"klara-12","Už je deset a ty pořád sedíš? 😮":"klara-13","Mmm… ty jsi ale cukrouš 😳💋":"klara-14","Wow. Tohle jsem fakt nečekala 😍":"klara-15","Ještě jednou a vezmu si tě 💍":"klara-16","A co já?! 😤":"klara-17","Tak to jsem tady asi navíc… 🙄":"klara-18","Hm. Tak já jdu za Pepou 😒":"klara-19","To si zapamatuju, [jméno v 5. pádě] 😠":"klara-20","ZLATÁ DESÍTKA?! Ty máš kliku! 🤩":"klara-21","Pšššt! Volá mu mamka! 🤫":"klara-22","Ty máš ale ruku! 😍":"klara-23","Ty jsi gentleman! 😍":"klara-24","Na zdraví, [jméno v 5. pádě]! 🥂":"klara-25","NA MOJE BOTY?! 😭":"klara-26","Já… já se jdu převlíct 🤮":"klara-27","Tak co, prohrál jsi všechno? 😂":"klara-28","Gambler se vrátil! 🎰":"klara-29","Kde jsi byl? Smrdíš jak automat 🤨":"klara-30","Vyhrál jsi? Tak platíš rundu! 🍻":"klara-31","Vítej zpátky! Umyl sis ruce? 🤨":"klara-32","Tos byl dlouho… 🤔":"klara-33","Myslela jsem, že ses tam utopil 😂":"klara-34","LEGENDA! 🏆😍":"klara-35","Ježiši, on čůrá na bar!! 😱":"klara-36","Dobrý večer, paní… 😳":"klara-37","Hahahaha! Mám to natočený! 📱😂":"klara-38","Ukaž, co v tobě je, [jméno v 5. pádě]! 😏":"klara-39"},"tereza":{"Kolik už máš promile, zlato?":"tereza-01","Tohle nedopadne dobře… 😂":"tereza-02","Pojď tancovat, [jméno v 5. pádě]!":"tereza-03","Houpeš se jak loďka ⛵":"tereza-04","Vsadím se, že do půlnoci spadne":"tereza-05","Dej si kebab, jsi celej zelenej":"tereza-06","[jméno v 5. pádě], ty jsi hnusnej 🤮":"tereza-07","Já jsem z toho oslepla! 😭":"tereza-08","Fuj, ty smrdíš česnekem! 🧄":"tereza-09","Proč ti cuká oko? ⚡":"tereza-10","Zelená? To piješ jak důchodce 😂":"tereza-11","Za hodinu půlnoc, [jméno v 5. pádě]!":"tereza-12","Hmm… ujde to 😏💋":"tereza-13","No konečně ses odvážil! 💜":"tereza-14","Líbáš líp, než tancuješ 😘":"tereza-15","A co já?! 😤":"tereza-16","Tak to jsem tady asi navíc… 🙄":"tereza-17","Hm. Tak já jdu za Pepou 😒":"tereza-18","To si zapamatuju, [jméno v 5. pádě] 😠":"tereza-19","Fuj, [jméno v 5. pádě]! 🤢":"tereza-20","Říhat umíš, to se musí nechat 😒":"tereza-21","To bylo cítit až sem 🤮":"tereza-22","ON JE STROJ! 🤯":"tereza-23","Hahaha, to bylo hrozný 😂":"tereza-24","Pojď tancovat, [jméno v 5. pádě]! 💃":"tereza-25","Ty umíš tancovat?! 😳💃":"tereza-26","AU! Ty dřevo! 😤":"tereza-27","No vida, umíš to 😏":"tereza-28","Tak to je jiná řeč! 💜":"tereza-29","Natočila jsem to. Jde to na TikTok 📱":"tereza-30","Tohle uvidím ve snech 💀":"tereza-31","Tak co, prohrál jsi všechno? 😂":"tereza-32","Gambler se vrátil! 🎰":"tereza-33","Kde jsi byl? Smrdíš jak automat 🤨":"tereza-34","Vyhrál jsi? Tak platíš rundu! 🍻":"tereza-35","Tohle jsem nečekala 😳":"tereza-36","FUJ, [jméno v 5. pádě]!!! 🤮":"tereza-37","Haló? [jméno v 5. pádě]? Je naživu? 😨":"tereza-38"},"vrchni":{"Další kolo? 🍺":"vrchni-01","Tady máš, ať nežízníš.":"vrchni-02","Platíš kartou, nebo játrama?":"vrchni-03","Na účet, [jméno v 5. pádě]? Ten už je dlouhej jak Bible.":"vrchni-04","Čepuju, čepuju!":"vrchni-05","TO BYLO ZA PADESÁT KAČEN! 😤":"vrchni-06","Kdo rozbije, platí!":"vrchni-07","Další sklo… já se z vás zblázním.":"vrchni-08","Chytat, [jméno v 5. pádě]! CHYTAT!":"vrchni-09","Nechceš? Tak to vypiju já.":"vrchni-10","Ty už nepiješ? Nemocnej?":"vrchni-11","Kdo prdnul? Tady se vaří! 😤":"vrchni-12","Otevřete někdo okno, nebo zavolám hasiče! 🚒":"vrchni-13","PŮLNOC! Runda na podnik! 🥃":"vrchni-14","Kuchyň zavřená. Kebab už jen ze včerejška.":"vrchni-15","Poslední hodina, pánové! Pijte!":"vrchni-16","Devět hodin. Začíná to houstnout 🍺":"vrchni-17","ZLATÁ DESÍTKA NA ZEMI?! To je hřích! 😭":"vrchni-18","RUNDA PRO CELEJ BAR! 🥃🥃🥃":"vrchni-19","Pepa tě vyzval na páku! 💪":"vrchni-20","Pepa platí rundu! 🍺":"vrchni-21","Na to nemáš, kámo. Nejdřív zaplať, co jsi vypil 💸":"vrchni-22","Dva panáky pro dámy! 🥂":"vrchni-23","TO SI UKLIDÍŠ SÁM! 🧽":"vrchni-24","ZAVÍRÁME! Ty jsi teda kus chlapa, [jméno v 5. pádě]. 🫡":"vrchni-25","TO SNAD NENÍ PRAVDA!! 😤":"vrchni-26"},"lada":{"ON POČŮRAL AUTOMAT A TEĎ I BAR?! 😱":"lada-01","Máš […]. Ještě kartu? 🃏":"lada-02","[…]… odvážíš se? 😏":"lada-03","Karty jsou rozdaný. Tak co, hrdino? 🎩":"lada-04","Kolik vidíš karet? Dvě? Jsou tam tři 🥴":"lada-05","Ty počítáš na prstech? To je sedm prstů, kámo ✋✌️":"lada-06","Přestaň olizovat karty, prosím 👅":"lada-07","Tak se podíváme, co mám já… 🎩":"lada-08","Vítej, [jméno v 5. pádě]. Vsaď si, štěstí přeje odvážným 😏":"lada-09","Zase ty? Minule jsi tu nechal i boty 👟":"lada-10","Promile máš, tak ještě body a můžem hrát 🎲":"lada-11","Neboj, tady ještě nikdo nepřišel o všechno. Teda… skoro nikdo 😈":"lada-12","Na to nemáš, kámo. Bez bodů do herny nelez 💸":"lada-13","Tvoje kapsy jsou prázdnější než tvoje hlava 🙃":"lada-14","[…] na […]. Sázky uzavřeny… 🎲":"lada-15","NULA?! TO SE NESTÁVÁ!! 😱 Vyhráváš […]!":"lada-16","Gratuluju, pane. Vyhráváte […]! 🤑":"lada-17","Sakra, zase vyhrál. […] bodů. Kdo ho sem pustil? 😒":"lada-18","+[…]! Dneska ti to jde, [jméno v 5. pádě] 💰":"lada-19","ALL-IN a padlo […]. Tak to bolí. Chceš kapesník? 🤧":"lada-20","Padlo […]. Banka vždycky vyhrává, kámo 😏":"lada-21","[…]. Smůla. Ale příště to určitě padne… 😈":"lada-22","Padlo […]. Díky, tvoje body si dám na novou káru 🏎️":"lada-23","[…]. Nebreč, máš ještě játra 🫁":"lada-24","[…] na […]. Foukni mi pro štěstí 🌬️":"lada-25","Kostky jsou čistý, přísahám na babičku 🤞":"lada-26","Tak jedem! 🎲":"lada-27","Hmm. Kostky asi nejsou tak čistý, jak jsem myslel 😒":"lada-28","[…]? Tak to máš kliku, […] 🍀":"lada-29","Fajn, vyhrál jsi. Ale kostky jsem foukal já! 😤":"lada-30","[…]. Kostky mě mají rády 😏":"lada-31","Smůla. Zkus je víc foukat 🌬️":"lada-32","[…]! Banka bere, […] 🏦":"lada-33","Ty držíš kartu s kečupem? To je moje karta! 🍔":"lada-34","Proč na ty karty mrkáš? Ony ti neodpoví 🥴":"lada-35","Stejný karty? To se nestává. Neopisuješ ode mě? 🤨":"lada-36","[…] bere […]. Pokerface, kámo 😎":"lada-37","[…]. Díky za body, jdu si koupit kravatu 👔":"lada-38","Banka vyhrává. Jako vždycky 🏦":"lada-39"},"mamka":{"[jméno v 5. pádě], kde jsi?":"mamka-01","Proč tak divně mluvíš?":"mamka-02","Kdy přijdeš domů?":"mamka-03","Snědl sis tu svačinu?":"mamka-04","Co to tam za hudbu hraje?":"mamka-05","Napsal sis úkoly?":"mamka-06","Kolik ti mám poslat na obědy?":"mamka-07"}};
+
 /* ---------- online žebříček (Supabase) – stačí doplnit URL a publishable/anon klíč ---------- */
 const SB_URL = 'https://oknmmleqjbcvmhmoqcbu.supabase.co';
 const SB_KEY = 'sb_publishable_kG0AnmmFYfsOPP-_AGzkMg_qRgVxJCG';
@@ -1360,9 +1363,47 @@ const bubbles = {
   vrchni: { el: $('bub-vrchni'), t: 0, name: 'Vrchní' },
   me: { el: $('bub-me'), t: 0, name: '' },
 };
+/* ---------- hlasy postav (nahrávky ve složce voice/) ---------- */
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+const voiceIdx = {};
+for (const w in VOICE_MAP) {
+  const ex = new Map(), pats = [];
+  for (const [k, c] of Object.entries(VOICE_MAP[w])) {
+    if (k.includes('[…]')) pats.push([new RegExp('^' + k.split('[…]').map(escRe).join('[\\s\\S]+?') + '$'), c]);
+    else ex.set(k, c);
+  }
+  voiceIdx[w] = { ex, pats };
+}
+const voices = {};
+function voiceCode(who, raw) {
+  const idx = voiceIdx[who]; if (!idx || !raw) return null;
+  const key = raw.replace(/\{V\}/g, '[jméno v 5. pádě]').replace(/\{N\}/g, '[jméno]').trim();
+  if (idx.ex.has(key)) return idx.ex.get(key);
+  for (const [re, c] of idx.pats) if (re.test(key)) return c;
+  return null;
+}
+function playVoice(who, raw) {
+  const code = voiceCode(who, raw);
+  if (!code || !audio.on) return;
+  let el = voices[who];
+  if (!el) {
+    el = voices[who] = document.createElement('audio'); el.preload = 'auto';
+    try { el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
+  }
+  try { el.pause(); } catch (e) {}
+  el.src = `voice/${code}.wav`;
+  // opilej Martin mluví pomaleji a hlouběji
+  const d = clamp((promile || 0) / 4.2, 0, 1);
+  el.playbackRate = who === 'me' ? 1 - d * 0.16 : 1;
+  el.volume = 1;
+  el.play().catch(() => {});
+}
+const voiceBusy = () => Object.values(voices).some(v => !v.paused && !v.ended);
+
 function say(who, text, dur = 3, name) {
   const b = bubbles[who]; if (!b) return;
   const nm = name || b.name;
+  playVoice(name === 'Pepa' ? 'pepa' : name && name.includes('Láďa') ? 'lada' : who, text);
   b.el.innerHTML = (nm ? `<b>${nm}</b>` : '') + escapeHtml(T(text));
   b.el.classList.add('on'); b.t = dur;
   if (who === 'klara') klara.talk = dur; if (who === 'tereza') tereza.talk = dur;
@@ -1562,10 +1603,11 @@ function startPhone() {
   const ans = [{ t: c.ok, ok: true }, ...c.bad.map(t => ({ t, ok: false }))].sort(() => Math.random() - 0.5);
   const amt = clamp((promile - 1) / 3, 0, 1);
   $('phone-q').textContent = '👩 ' + T(c.q);
+  setTimeout(() => { if (phone) playVoice('mamka', c.q); }, 700);
   const box = $('phone-ans'); box.innerHTML = '';
   ans.forEach(a => {
     const b = document.createElement('button'); b.textContent = slur(T(a.t), amt);
-    b.addEventListener('click', e => { e.stopPropagation(); answerPhone(a.ok); });
+    b.addEventListener('click', e => { e.stopPropagation(); playVoice('me', a.t); answerPhone(a.ok); });
     box.appendChild(b);
   });
   $('phone-st').textContent = 'Podezření: ' + '😡'.repeat(strikes) + '😐'.repeat(3 - strikes);
@@ -1590,12 +1632,12 @@ function answerPhone(ok) {
   if (ok) {
     audio.good(); stats.callsOk++; const pts = Math.round(800 * mult()); score += pts;
     popup(W / 2, H * 0.45, `+${fmtNum(pts)} MAMKA UVĚŘILA 😇`, '#4ade80', 22);
-    say('me', 'Jo mami, jasně… pa pa pa ❤️', 2.2);
+    setTimeout(() => { if (state === 'PLAYING') say('me', 'Jo mami, jasně… pa pa pa ❤️', 2.2); }, 1700);
   } else {
     strikes++; audio.bad();
     if (strikes >= 3) { startEnding('MAMKA'); return; }
     bigText(`MAMKA TUŠÍ… ${'😡'.repeat(strikes)}`, '#f87171');
-    say('me', '…mami? Haló? Mami?! 😰', 2.2);
+    setTimeout(() => { if (state === 'PLAYING') say('me', '…mami? Haló? Mami?! 😰', 2.2); }, 1700);
     setTimeout(() => say('tereza', 'Hahaha, to bylo hrozný 😂', 2.4), 500);
   }
 }
@@ -1861,7 +1903,9 @@ const COL_EM = { zero: '🟢', red: '🔴', black: '⚫' }, COL_BG = { zero: '#1
 function renderHist() {
   $('w-hist').innerHTML = HG.hist.length ? '<small>Padlo:</small>' + HG.hist.map((n, i) => `<span class="${i === 0 ? 'last' : ''}" style="background:${COL_BG[colOf(n)]}">${n}</span>`).join('') : '';
 }
-function hMsg(t) { const el = $('h-msg'); el.textContent = T(t); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+function hMsg(t) {
+  if (/^(Krupiér )?Láďa:\s*/.test(t)) playVoice('lada', t.replace(/^(Krupiér )?Láďa:\s*/, ''));
+  const el = $('h-msg'); el.textContent = T(t); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 function capScore() { score = Math.min(score, 1999999, Math.max(0, elapsed) * 15000 + 50000); }
 function setHernaBusy(b) { document.querySelectorAll('#herna button:not(.bj-act)').forEach(el => { el.disabled = b; }); }
 
@@ -2795,7 +2839,7 @@ function updateFX(dt, now) {
   audio.drunk = d;
   if (state === 'PLAYING' || state === 'WC') audio.tempoMul = (ef.turbo > 0 ? 1.25 : 1) * (1 - d * 0.12);
   // MP3 hudba: hlasitost podle místa, rychlost/výška tónu podle opilosti
-  const lvl = state === 'PLAYING' ? 0.42 : state === 'HERNA' ? 0.22 : state === 'WC' ? 0.1 : state === 'ENDING' ? 0.32 : 0.35;
+  const lvl = (state === 'PLAYING' ? 0.42 : state === 'HERNA' ? 0.22 : state === 'WC' ? 0.1 : state === 'ENDING' ? 0.32 : 0.35) * (voiceBusy() ? 0.5 : 1);
   let rate = 1 - d * 0.06 + Math.sin(now * 0.6) * d * 0.035;
   if (ef.turbo > 0) rate *= 1.12;
   if (ef.trip > 0) rate += Math.sin(now * 1.8) * 0.07;
