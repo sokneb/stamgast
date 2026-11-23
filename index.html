@@ -727,7 +727,7 @@ class Audio {
   flush() { this.noise(1.6, { ft: 'lowpass', f: 2500, fto: 250, vol: 0.35, att: 0.15 }); }
   pee(d = 3) { this.noise(d, { f: 1100, q: 2.5, vol: 0.22, att: 0.1 }); }
   door() { this.thud(); this.noise(0.15, { f: 2000, q: 1, vol: 0.2, delay: 0.02 }); }
-  whoosh() { this.noise(0.35, { f: 400, fto: 2400, q: 1.5, vol: 0.18 }); }
+  whoosh() { this.noise(0.3, { f: 400, fto: 2000, q: 1.5, vol: 0.07 }); }
   fart() { for (let i = 0; i < 12; i++) this.tone(rand(60, 105), 0.06, { type: 'sawtooth', vol: 0.22, lp: 380, delay: i * 0.042 }); this.noise(0.55, { ft: 'lowpass', f: 260, vol: 0.18, att: 0.02 }); }
   slap() { this.noise(0.12, { ft: 'highpass', f: 1400, vol: 0.55 }); this.tone(320, 0.12, { to: 110, vol: 0.3 }); }
   kiss() { this.tone(900, 0.07, { to: 1600, vol: 0.12 }); this.noise(0.06, { f: 3000, q: 2, vol: 0.12, delay: 0.06 }); }
@@ -1375,7 +1375,11 @@ for (const w in VOICE_MAP) {
   }
   voiceIdx[w] = { ex, pats };
 }
-const voices = {};
+/* Mluví jen jeden naráz.
+   priorita 0 = kecy na pozadí (jen občas, nikdy nepřeruší), 1 = reakce na dění (počká ve frontě),
+   2 = herna / důležité (může přerušit nižší), 3 = mamka a telefon (přeruší všechno) */
+const VOICE = { el: null, cur: null, pending: null, lastEnd: 0, prioOverride: null };
+const voicesNow = () => performance.now() / 1000;
 function voiceCode(who, raw) {
   const idx = voiceIdx[who]; if (!idx || !raw) return null;
   const key = raw.replace(/\{V\}/g, '[jméno v 5. pádě]').replace(/\{N\}/g, '[jméno]').trim();
@@ -1383,23 +1387,45 @@ function voiceCode(who, raw) {
   for (const [re, c] of idx.pats) if (re.test(key)) return c;
   return null;
 }
-function playVoice(who, raw) {
-  const code = voiceCode(who, raw);
-  if (!code || !audio.on) return;
-  let el = voices[who];
-  if (!el) {
-    el = voices[who] = document.createElement('audio'); el.preload = 'auto';
-    try { el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
-  }
+function voiceEl() {
+  if (VOICE.el) return VOICE.el;
+  const el = VOICE.el = document.createElement('audio'); el.preload = 'auto';
+  try { el.preservesPitch = false; el.mozPreservesPitch = false; el.webkitPreservesPitch = false; } catch (e) {}
+  const done = () => {
+    VOICE.cur = null; VOICE.lastEnd = voicesNow();
+    const p = VOICE.pending; VOICE.pending = null;
+    if (p && voicesNow() - p.t < 2.5 && state !== 'OVER' && state !== 'START') setTimeout(() => startVoice(p.code, p.who, p.prio), 350);
+  };
+  el.addEventListener('ended', done); el.addEventListener('error', done);
+  return el;
+}
+const voiceBusy = () => !!VOICE.cur;
+function startVoice(code, who, prio) {
+  const el = voiceEl();
   try { el.pause(); } catch (e) {}
+  VOICE.cur = { prio, who };
   el.src = `voice/${code}.wav`;
   // opilej Martin mluví pomaleji a hlouběji
   const d = clamp((promile || 0) / 4.2, 0, 1);
   el.playbackRate = who === 'me' ? 1 - d * 0.16 : 1;
   el.volume = 1;
-  el.play().catch(() => {});
+  el.play().catch(() => { VOICE.cur = null; });
 }
-const voiceBusy = () => Object.values(voices).some(v => !v.paused && !v.ended);
+function playVoice(who, raw, prio) {
+  if (prio === undefined) prio = VOICE.prioOverride !== null ? VOICE.prioOverride : 1;
+  const code = voiceCode(who, raw);
+  if (!code || !audio.on) return;
+  const cur = VOICE.cur;
+  if (cur) {
+    if (prio >= 2 && (prio > cur.prio || prio === 3)) return startVoice(code, who, prio); // důležité přeruší
+    const p = VOICE.pending;                                                       // reakce počká (první vyhrává)
+    if (prio >= 1 && (!p || prio > p.prio || voicesNow() - p.t > 2.5)) VOICE.pending = { code, who, prio, t: voicesNow() };
+    return;                                                                        // kecy se zahodí
+  }
+  if (prio === 0 && (voicesNow() - VOICE.lastEnd < 2.5 || Math.random() > 0.55)) return;
+  startVoice(code, who, prio);
+}
+function chatter(fn) { VOICE.prioOverride = 0; try { fn(); } finally { VOICE.prioOverride = null; } }
 
 function say(who, text, dur = 3, name) {
   const b = bubbles[who]; if (!b) return;
@@ -1569,8 +1595,10 @@ function consume(it) {
     case 'water': audio.sad(); break;
     case 'gold': audio.glug(0.9); audio.kaching(); bigText('🌟 ZLATÁ! +1500 🌟', '#ffd700'); setTimeout(() => say('klara', 'ZLATÁ DESÍTKA?! Ty máš kliku! 🤩', 2.6), 400); break;
   }
-  if (L[it.type] && Math.random() < 0.55) say('me', pick(L[it.type]), 2.4);
-  else if (Math.random() < 0.25) meLine();
+  chatter(() => {
+    if (L[it.type] && Math.random() < 0.55) say('me', pick(L[it.type]), 2.4);
+    else if (Math.random() < 0.25) meLine();
+  });
   if (REACT[it.type] && Math.random() < 0.6) { const [w, t] = REACT[it.type]; setTimeout(() => say(w, t, 2.8), 600); }
   if (it.type === 'kebab') kebabT = elapsed;
   if ((it.type === 'kebab' || it.type === 'utop') && autoFartT <= 0 && Math.random() < 0.45) autoFartT = rand(4, 10);
@@ -1604,11 +1632,11 @@ function startPhone() {
   const ans = [{ t: c.ok, ok: true }, ...c.bad.map(t => ({ t, ok: false }))].sort(() => Math.random() - 0.5);
   const amt = clamp((promile - 1) / 3, 0, 1);
   $('phone-q').textContent = '👩 ' + T(c.q);
-  setTimeout(() => { if (phone) playVoice('mamka', c.q); }, 700);
+  setTimeout(() => { if (phone) playVoice('mamka', c.q, 3); }, 700);
   const box = $('phone-ans'); box.innerHTML = '';
   ans.forEach(a => {
     const b = document.createElement('button'); b.textContent = slur(T(a.t), amt);
-    b.addEventListener('click', e => { e.stopPropagation(); playVoice('me', a.t); answerPhone(a.ok); });
+    b.addEventListener('click', e => { e.stopPropagation(); playVoice('me', a.t, 3); answerPhone(a.ok); });
     box.appendChild(b);
   });
   $('phone-st').textContent = 'Podezření: ' + '😡'.repeat(strikes) + '😐'.repeat(3 - strikes);
@@ -1905,7 +1933,7 @@ function renderHist() {
   $('w-hist').innerHTML = HG.hist.length ? '<small>Padlo:</small>' + HG.hist.map((n, i) => `<span class="${i === 0 ? 'last' : ''}" style="background:${COL_BG[colOf(n)]}">${n}</span>`).join('') : '';
 }
 function hMsg(t) {
-  if (/^(Krupiér )?Láďa:\s*/.test(t)) playVoice('lada', t.replace(/^(Krupiér )?Láďa:\s*/, ''));
+  if (/^(Krupiér )?Láďa:\s*/.test(t)) playVoice('lada', t.replace(/^(Krupiér )?Láďa:\s*/, ''), 2);
   const el = $('h-msg'); el.textContent = T(t); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
 function capScore() { score = Math.min(score, 1999999, Math.max(0, elapsed) * 15000 + 50000); }
 function setHernaBusy(b) { document.querySelectorAll('#herna button:not(.bj-act)').forEach(el => { el.disabled = b; }); }
@@ -2349,9 +2377,9 @@ function updatePlaying(dt) {
   // chat
   chatT -= dt;
   if (chatT <= 0) {
-    chatT = rand(4.5, 7.5);
+    chatT = rand(7, 11.5);
     const r = Math.random();
-    if (r < 0.38) say('klara', pick(L.klara)); else if (r < 0.76) say('tereza', pick(L.tereza)); else if (r < 0.88) say('vrchni', pick(L.vrchni), 2.6); else meLine();
+    chatter(() => { if (r < 0.38) say('klara', pick(L.klara)); else if (r < 0.76) say('tereza', pick(L.tereza)); else if (r < 0.88) say('vrchni', pick(L.vrchni), 2.6); else meLine(); });
   }
 
   // házení
