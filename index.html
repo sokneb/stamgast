@@ -266,9 +266,10 @@ body.touch #actbar .k{display:none}
 #gif-q{flex:1;min-width:0;-webkit-user-select:text;user-select:text;background:#292524;border:2px solid #57534e;color:#fff;border-radius:12px;padding:9px 11px;font-family:inherit;font-size:16px;outline:none}
 #gif-q:focus{border-color:#a855f7}
 #gif-x{width:40px;border-radius:12px;border:2px solid #57534e;background:#292524;color:#fff;cursor:pointer;font-size:16px}
-#gif-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:min(230px,30vh);overflow-y:auto}
-#gif-grid button{padding:0;border:none;border-radius:8px;overflow:hidden;background:#292524;cursor:pointer;aspect-ratio:1;display:block}
-#gif-grid img{width:100%;height:100%;object-fit:cover;display:block}
+#gif-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:clamp(72px,22vw,110px);align-content:start;gap:6px;height:min(240px,32vh);overflow-y:auto;overscroll-behavior:contain}
+#gif-grid button{position:relative;padding:0;border:none;border-radius:8px;overflow:hidden;background:#292524;cursor:pointer;display:block;width:100%;height:100%;min-height:0}
+#gif-grid button:active{transform:scale(.95)}
+#gif-grid img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 #gif-grid .gif-msg{grid-column:1/-1;color:var(--muted);font-weight:700;font-size:13px;text-align:center;padding:20px 6px}
 .gif-by{font-size:10px;color:var(--muted);text-align:right;margin-top:5px;font-weight:700}
 .cm img.cgif{display:block;max-width:min(220px,58vw);max-height:200px;border-radius:10px;margin-top:4px;background:#1c1917}
@@ -2838,11 +2839,19 @@ async function sendChat(e) {
   $('chat-send').disabled = false;
   if (!isTouch) inp.focus();
 }
-function postGameToChat(run) {
-  if (!ONLINE || run.score < 1000) return;
-  const E = ENDS[run.ending] || ENDS.FALL;
-  const title = run.ending === 'PEE' && hernaPee ? 'POČŮRAL AUTOMAT' : E.t.replace(/!$/, '');
-  chatPost(run.name, `dal ${fmtNum(run.score)} bodů a skončil: ${title} ${E.e}`, 'game').catch(() => {});
+// do chatu jen to podstatné: přežití do zavíračky nebo průnik do TOP 10 žebříčku
+function postGameToChat(run, topRank) {
+  if (!ONLINE) return;
+  const pts = `${fmtNum(run.score)} body`;
+  // už v žebříčku je se stejným nebo lepším skóre → nic novýho, nespamovat
+  const already = Array.isArray(onlineTop) && onlineTop.some(r => r.name.trim().toLowerCase() === run.name.trim().toLowerCase() && r.score >= run.score);
+  const top = !already && topRank && topRank <= 10;
+  let msg = null;
+  if (run.ending === 'ZAVIRACKA' && top) msg = `přežil do zavíračky a je #${topRank} v žebříčku s ${pts}! 🌅🔥`;
+  else if (run.ending === 'ZAVIRACKA') msg = `přežil do zavíračky ve 4:00 s ${pts}! 🌅`;
+  else if (top && topRank === 1) msg =`je NOVEJ KRÁL HOSPODY! #1 v žebříčku s ${pts} 👑`;
+  else if (top) msg = `se dostal do TOP 10 na #${topRank} místo s ${pts}! 🔥`;
+  if (msg) chatPost(run.name, msg, 'game').catch(() => {});
 }
 
 async function loadTop() {
@@ -2854,10 +2863,17 @@ async function loadTop() {
 async function submitRun(run) {
   try {
     await sb('stamgast_scores', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(run) });
-    postGameToChat(run);
     const r = await sb(`stamgast_scores?select=id&score=gt.${run.score}`, { method: 'HEAD', headers: { Prefer: 'count=exact' } });
     const cr = r.headers.get('content-range');
     if (cr && cr.includes('/')) myRank = parseInt(cr.split('/')[1], 10) + 1;
+    // pořadí v žebříčku (nejlepší skóre každého jména) – podle něj se rozhoduje, jestli to stojí za zprávu do chatu
+    let topRank = null;
+    try {
+      const t = await sb(`stamgast_top?select=name&score=gt.${run.score}`, { method: 'HEAD', headers: { Prefer: 'count=exact' } });
+      const tc = t.headers.get('content-range');
+      if (tc && tc.includes('/')) topRank = parseInt(tc.split('/')[1], 10) + 1;
+    } catch (_) {}
+    postGameToChat(run, topRank);
   } catch (e) { console.warn('Žebříček:', e); }
   loadTop();
 }
